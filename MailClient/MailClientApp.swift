@@ -11,7 +11,7 @@ import SwiftUI
 struct MailClientApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainTabView(deviceID: "macbook-pro-001")
         }
     }
 }
