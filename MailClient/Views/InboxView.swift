@@ -144,11 +144,17 @@ struct MailRowView: View {
     let mail: EncryptedMail
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("From: \(mail.sender)")
                     .font(.headline)
-
+                
+                Text("Subject: \(mail.subject)")
+                        .font(.subheadline)
+                        .bold()
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                
                 Text(mail.decryptedPreview)
                     .font(.subheadline)
                     .foregroundColor(.primary)
@@ -180,7 +186,7 @@ struct MailRowView: View {
                     .animation(.easeInOut(duration: 0.3), value: mail.readAt)
             }
         }
-        .padding()
+        .padding(10)
         .background(
             RoundedRectangle(cornerRadius: 14)
                 .fill(.secondary.opacity(0.05))

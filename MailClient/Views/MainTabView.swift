@@ -38,8 +38,8 @@ struct MainTabView: View {
                 }
                 Spacer()
             }
-            .padding()
-            .frame(minWidth: 180)
+            .padding(10)
+            .frame(minWidth: 100)
         } detail: {
             InboxView(recipientID: deviceID, folder: selectedFolder)
                 .navigationTitle(selectedFolder.rawValue)

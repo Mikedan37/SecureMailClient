@@ -3,25 +3,19 @@
 //  Created by Michael Danylchuk on 5/13/25.
 import SwiftUI
 
-struct MailAccount: Identifiable, Hashable {
-    let id = UUID()
-    var email: String
-    var password: String
-}
-
 struct SettingsView: View {
-    @State private var accounts: [MailAccount] = []
+    @EnvironmentObject var accountStore: MailAccountStore
     @State private var newEmail: String = ""
     @State private var newPassword: String = ""
 
     var body: some View {
         Form {
             Section(header: Text("Mail Accounts")) {
-                if accounts.isEmpty {
+                if accountStore.accounts.isEmpty {
                     Text("No accounts added.")
                         .foregroundColor(.secondary)
                 } else {
-                    ForEach(accounts) { account in
+                    ForEach(accountStore.accounts) { account in
                         HStack {
                             Text(account.email)
                             Spacer()
@@ -30,7 +24,7 @@ struct SettingsView: View {
                         }
                     }
                     .onDelete { indexSet in
-                        accounts.remove(atOffsets: indexSet)
+                        accountStore.accounts.remove(atOffsets: indexSet)
                     }
                 }
             }
@@ -46,8 +40,16 @@ struct SettingsView: View {
 
                 Button("Add Account") {
                     guard !newEmail.isEmpty, !newPassword.isEmpty else { return }
-                    let newAccount = MailAccount(email: newEmail, password: newPassword)
-                    accounts.append(newAccount)
+
+                    let newAccount = MailAccount(
+                        email: newEmail,
+                        imapHost: "imap.gmail.com",     // TODO: make dynamic later
+                        smtpHost: "smtp.gmail.com",
+                        username: newEmail,
+                        password: newPassword
+                    )
+
+                    accountStore.accounts.append(newAccount)
                     newEmail = ""
                     newPassword = ""
                 }

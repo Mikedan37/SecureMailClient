@@ -11,6 +11,10 @@ struct MailDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("From: \(mail.sender)").bold()
             Text("To: \(mail.recipient)")
+            Text("Subject: \(mail.subject)")
+                .font(.title3)
+                .bold()
+                .padding(.vertical, 4)
             if let timestamp = mail.timestamp {
                 Text("Received: \(timestamp.formatted())")
             }

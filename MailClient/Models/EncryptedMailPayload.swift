@@ -5,6 +5,7 @@
 private struct EncryptedMailPayload: Codable {
     let sender: String
     let recipient: String
+    let subject: String
     let ciphertext: String
     let signature: String
     let burnAfterRead: Bool

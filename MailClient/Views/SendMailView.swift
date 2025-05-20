@@ -5,18 +5,21 @@ import SwiftUI
 import Foundation
 
 struct SendMailView: View {
+    @EnvironmentObject var accountStore: MailAccountStore
+
     @State private var recipientID = ""
     @State private var plaintext = ""
     @State private var status: String?
     @State private var isHovering = false
     @State private var burnAfterRead = false
+    @State private var subject: String = ""
+    @State private var sendViaSMTP = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(spacing: 0) {
-            // Top bar with dismiss
             HStack {
-                Text("New Encrypted Message")
+                Text("New Message")
                     .font(.title2.bold())
                 Spacer()
                 Button(action: { dismiss() }) {
@@ -30,11 +33,7 @@ struct SendMailView: View {
                 .buttonStyle(.plain)
                 .onHover { hovering in
                     isHovering = hovering
-                    if hovering {
-                        NSCursor.pointingHand.set()
-                    } else {
-                        NSCursor.arrow.set()
-                    }
+                    (hovering ? NSCursor.pointingHand : NSCursor.arrow).set()
                 }
             }
             .padding(.horizontal, 16)
@@ -44,7 +43,10 @@ struct SendMailView: View {
             Divider()
 
             VStack(alignment: .leading, spacing: 12) {
-                TextField("Recipient Device ID", text: $recipientID)
+                TextField(sendViaSMTP ? "Recipient Email Address" : "Recipient Device ID", text: $recipientID)
+                    .textFieldStyle(.roundedBorder)
+
+                TextField("Subject", text: $subject)
                     .textFieldStyle(.roundedBorder)
 
                 TextEditor(text: $plaintext)
@@ -55,6 +57,8 @@ struct SendMailView: View {
                             .stroke(Color.gray.opacity(0.3))
                     )
 
+                Toggle("Send via SMTP", isOn: $sendViaSMTP)
+
                 if let status {
                     Text(status)
                         .foregroundColor(.secondary)
@@ -63,31 +67,48 @@ struct SendMailView: View {
             }
             .padding(16)
 
-            // 🔥 Toggle + Send Button on one line
             HStack(alignment: .center, spacing: 16) {
                 Button {
                     Task {
                         do {
-                            let pubkey = try await APIService.shared.getPublicKey(for: recipientID)
-                            let encrypted = try encryptMail(plaintext, to: pubkey)
-                            try await APIService.shared.sendMail(
-                                recipient: recipientID,
-                                ciphertext: encrypted.ciphertext,
-                                signature: encrypted.signature,
-                                burnAfterRead: burnAfterRead
-                            )
-                            status = "✅ Sent"
+                            if sendViaSMTP {
+                                guard let account = accountStore.accounts.first else {
+                                    status = "❌ No SMTP account configured"
+                                    return
+                                }
+
+                                let smtp = SMTPService(email: account.email, password: account.password)
+                                smtp.sendEmail(to: recipientID, subject: subject, body: plaintext)
+                                status = "📤 Sent via SMTP"
+                                dismiss()
+                            } else {
+                                let pubkey = try await APIService.shared.getPublicKey(for: recipientID)
+                                let encrypted = try encryptMail(plaintext, to: pubkey)
+
+                                try await APIService.shared.sendMail(
+                                    recipient: recipientID,
+                                    subject: subject,
+                                    ciphertext: encrypted.ciphertext,
+                                    signature: encrypted.signature,
+                                    burnAfterRead: burnAfterRead
+                                )
+                                status = "✅ Sent Securely"
+                                dismiss()
+                            }
+
                             plaintext = ""
                         } catch {
                             status = "❌ \(error.localizedDescription)"
                         }
                     }
                 } label: {
-                    Label("Send Secure Mail", systemImage: "paperplane.fill")
+                    Label("Send", systemImage: "paperplane.fill")
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(recipientID.isEmpty || plaintext.isEmpty)
+
                 Spacer()
+
                 BurnAfterReadToggle(isOn: $burnAfterRead)
                     .toggleStyle(.switch)
             }
@@ -97,10 +118,7 @@ struct SendMailView: View {
         }
         .onAppear {
             Task {
-                let pubkey = DeviceUtils.deviceID
-                    .data(using: .utf8)!
-                    .base64EncodedString()
-
+                let pubkey = DeviceUtils.deviceID.data(using: .utf8)!.base64EncodedString()
                 await APIService.shared.ensureDeviceIsRegistered(publicKey: pubkey)
             }
 

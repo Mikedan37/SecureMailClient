@@ -7,6 +7,7 @@ import Foundation
 private struct EncryptedMailPayload: Codable {
     let sender: String
     let recipient: String
+    let subject: String
     let ciphertext: String
     let signature: String
     let burnAfterRead: Bool
@@ -39,6 +40,7 @@ class APIService {
     // ✅ Send encrypted mail (auto sender ID)
     func sendMail(
         recipient: String,
+        subject: String,
         ciphertext: String,
         signature: String,
         burnAfterRead: Bool
@@ -51,6 +53,7 @@ class APIService {
         let payload = EncryptedMailPayload(
             sender: DeviceUtils.deviceID,
             recipient: recipient,
+            subject: subject,
             ciphertext: ciphertext,
             signature: signature,
             burnAfterRead: burnAfterRead
@@ -135,6 +138,7 @@ class APIService {
                 id: UUID(),
                 sender: recipient,
                 recipient: "example@domain.com",
+                subject: "Hello!",
                 ciphertext: Data("Sent message content".utf8).base64EncodedString(),
                 signature: "SIGNED_SENT",
                 timestamp: Date().addingTimeInterval(-3600),
@@ -149,6 +153,7 @@ class APIService {
                 id: UUID(),
                 sender: "deleted@domain.com",
                 recipient: recipient,
+                subject: "Hello!",
                 ciphertext: Data("Deleted message content".utf8).base64EncodedString(),
                 signature: "SIGNED_TRASH",
                 timestamp: Date().addingTimeInterval(-7200),

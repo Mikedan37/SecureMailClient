@@ -25,7 +25,6 @@ func fetchInbox() async throws -> [EncryptedMail]
     •    Auto-resolves deviceID internally.
     •    Returns an array of EncryptedMail models from the inbox.
 
-⸻
 
 POST /sendEncryptedMail
 
@@ -50,8 +49,6 @@ func sendMail(
 }
 
 
-⸻
-
 POST /acknowledgeMail
 
 Mark a message as read/acknowledged.
@@ -63,8 +60,6 @@ func acknowledgeMail(id: UUID) async throws
 func acknowledgeOnRead(for mail: EncryptedMail) async
 
 
-⸻
-
 DELETE /mailbox/{id}
 
 Delete a specific message by ID.
@@ -72,7 +67,6 @@ Delete a specific message by ID.
 func deleteMail(id: UUID) async throws
 
 
-⸻
 
 🔑 Public Key Management
 
@@ -83,16 +77,13 @@ Fetch a device’s registered public key.
 func getPublicKey(for deviceID: String) async throws -> String
 
 
-⸻
-
 🧪 Mock Data (for Testing)
 
 func fetchSent(for recipient: String) async throws -> [EncryptedMail]
 func fetchTrash(for recipient: String) async throws -> [EncryptedMail]
 
     •    These return static mock data for now and can be replaced with backend routes later.
-
-⸻
+    
 
 🧱 Models
 
@@ -107,8 +98,6 @@ struct EncryptedMailPayload: Codable {
 }
 
 
-⸻
-
 🚀 Example Usage
 
 let inbox = try await APIService.shared.fetchInbox()
@@ -120,8 +109,6 @@ try await APIService.shared.sendMail(
 )
 
 
-⸻
-
 📡 Base URL
 
 Currently hardcoded to:
@@ -130,7 +117,6 @@ http://10.0.0.246:8080
 
 Change this for production or configurable environments.
 
-⸻
 
 📌 Notes
     •    All endpoints use JSONEncoder/Decoder with ISO-8601 date support
